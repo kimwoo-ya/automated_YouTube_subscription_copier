@@ -1,8 +1,14 @@
 # Automated YouTube Subscription Copier
 유튜브 프리미엄 유목민으로서....<br/> 약 180일 마다 신규 계정을 생성해야하므로...<br/>
 구 계정의 구독 목록을 신규 계정에 일괄 등록하기 위함....ㅎ
+
 # TODO
 - 도커 컨테이너로 구동하도록.
+- 유튜브 뮤직도?
+
+## 참고
+- [OPEN API 사용량 제한](https://developers.google.com/youtube/v3/determine_quota_cost?hl=ko)
+- [유튜브 뮤직 재생목록 용도?](https://developers.google.com/youtube/v3/docs/playlists?hl=ko)
 
 ## requirements
 1. google cloud registration
