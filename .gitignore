@@ -1,6 +1,8 @@
 # Godot 4+ specific ignores
 .godot/
 .nomedia
+.env
+token.json
 
 # Godot-specific ignores
 .import/
