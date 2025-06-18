@@ -1,5 +1,5 @@
 # youtube subscription automate copy
-유튜브 프리미엄 유목민으로서.... 약 180일 마다 신규 계정을 생성해야하므로...
+유튜브 프리미엄 유목민으로서....<br/> 약 180일 마다 신규 계정을 생성해야하므로...<br/>
 구 계정의 구독 목록을 신규 계정에 일괄 등록하기 위함....ㅎ
 ## requirements
 1. google cloud registration
