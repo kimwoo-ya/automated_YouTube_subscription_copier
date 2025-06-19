@@ -92,6 +92,19 @@ REDIRECT_URL: http://localhost:8080
 GOOGLE_API_KEY: XXXX....
 TARGET_CHANNEL_ID: XXXX....
 
+- 재생 목록: 🔥 (ID:XXXXXX)
+- 재생 목록 항목: Make U Dance (Feat. Jay Park) (박재범) (& Paul Blanco) (ID:4DZRLuD8AMs)
+- 재생 목록 항목: Crack On My Screen (내핸드폰에금이갔네) (Prod. By Minit) (Feat. Paloalto) (ID:kgNiM2u9OHQ)
+- 재생 목록 항목: [MV] Just Music _ Carnival Gang(카니발갱) (ID:CJdOUxMAkME)
+....
+playListId:XYYYY, playListTitle:🔥, len(playListItems):10
+playlist is already exist. 복제된_🔥
+이미 있는 재생목록 아이템(4DZRLuD8AMs)
+이미 있는 재생목록 아이템(kgNiM2u9OHQ)
+.....
+playlist item is newly appended [MV] Just Music _ Carnival Gang(카니발갱)
+.....
+
 ==	채널아이디(XXX)의 YouTube 구독 목록	==
 - 채널 제목: Noel Deyzel (ID: UCMp-0bU-PA7BNNR-zIvEydA)
 .....

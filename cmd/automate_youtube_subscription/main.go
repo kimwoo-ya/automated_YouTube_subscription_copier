@@ -35,6 +35,21 @@ func main() {
 		fmt.Errorf("%+v", err)
 		return
 	}
+	fmt.Printf("\t======\tYOUTUBE PLAYLIST COPY START\t======\t\n")
+
+	playListInfoMap, playListMap, err := yt.GetPlayList(youtubeService, target_channel_id)
+	if err != nil {
+		fmt.Errorf("%+v", err)
+		return
+	}
+	youtubeService, err = youtube.NewService(ctx, option.WithHTTPClient(client))
+	for playListTitle, playListId := range playListInfoMap {
+		fmt.Printf("playListId:%v, playListTitle:%v, len(playListItems):%v\n", playListId, playListTitle, len(playListMap[playListId]))
+		yt.RegisterVideoToMyPlayList(youtubeService, playListId, playListTitle, playListMap[playListId])
+	}
+	fmt.Printf("\t======\tYOUTUBE PLAYLIST COPY END\t======\t\n")
+
+	fmt.Printf("\t======\tYOUTUBE SUBSCRIPTION COPY START\t======\t\n")
 	target_channel_set, err := yt.GetSubscriptionSet(youtubeService, target_channel_id)
 	if err != nil {
 		fmt.Errorf("%v", err)
@@ -65,5 +80,6 @@ func main() {
 			fmt.Printf("[request] %v registered\n", channelId)
 		}
 	}
+	fmt.Printf("\t======\tYOUTUBE SUBSCRIPTION COPY END\t======\t\n")
 
 }
