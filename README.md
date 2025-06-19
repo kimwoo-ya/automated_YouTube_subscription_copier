@@ -1,6 +1,15 @@
 # Automated YouTube Subscription Copier
 유튜브 프리미엄 유목민으로서....<br/> 약 180일 마다 신규 계정을 생성해야하므로...<br/>
 구 계정의 구독 목록을 신규 계정에 일괄 등록하기 위함....ㅎ
+
+# TODO
+- 도커 컨테이너로 구동하도록.
+- 유튜브 뮤직도?
+
+## 참고
+- [OPEN API 사용량 제한](https://developers.google.com/youtube/v3/determine_quota_cost?hl=ko)
+- [유튜브 뮤직 재생목록 용도?](https://developers.google.com/youtube/v3/docs/playlists?hl=ko)
+
 ## requirements
 1. google cloud registration
 2. golang version `1.23.0`
@@ -14,7 +23,7 @@ touch .env
 ```.env
 TARGET_CHANNEL_ID="PASTE_TARGET_CHANNEL_ID"
 ```
-
+1~7 단계 참고 [공식_문서](https://developers.google.com/youtube/v3/quickstart/go?hl=ko#step_1_turn_on_the)
 1. 채널의 구독 정보 비공개를 해제해주세요.<br/>
 ![ ](./screenshots/00_사전조치사항.png)
 2. 구글 클라우드 콘솔로 이동해주세요. [google-cloud-console](https://console.cloud.google.com/welcome?hl=ko&inv=1&invt=Ab0cDg)
