@@ -7,6 +7,7 @@
 
 ## TODO
 1. 파라미터를 통한 기능수행.(ex. 재생목록만 복제,,,)
+2. Test case 추가
 
 ## 참고
 - [OPEN API 사용량 제한](https://developers.google.com/youtube/v3/determine_quota_cost?hl=ko)
