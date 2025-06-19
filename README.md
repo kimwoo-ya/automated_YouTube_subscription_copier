@@ -1,10 +1,9 @@
 # Automated YouTube Subscription Copier
 > 유튜브 프리미엄 유목민으로서 <br/> 약 180일 마다 신규 계정을 생성/이관해야하므로 <br/>
 구 계정의 구독 목록을 신규 계정에 일괄 등록하기 위함.
-
-# TODO
-- <s>도커 컨테이너로 구동하도록.</s>
-- 유튜브 뮤직도?
+### 주요 기능
+1. 유튜브 구독 복제(원 계정 -> 새 계정)
+2. 유튜브 재생 목록(youtube music) 복제(원 계정 -> 새 계정)
 
 ## 참고
 - [OPEN API 사용량 제한](https://developers.google.com/youtube/v3/determine_quota_cost?hl=ko)
