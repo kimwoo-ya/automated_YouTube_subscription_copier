@@ -1,6 +1,9 @@
 # Automated YouTube Subscription Copier
 > 유튜브 프리미엄 유목민으로서 <br/> 약 180일 마다 신규 계정을 생성/이관해야하므로 <br/>
-구 계정의 구독 목록을 신규 계정에 일괄 등록하기 위함.
+구 계정의 구독 목록을 신규 계정에 일괄 등록하기 위함.<br/>
+현재 오픈소스로 유사한 기능을 하는건 있으나, 유지보수가 제대로 안되거나 `selenium`, `Puppeteer` 이용하여 수행<br/>
+-> 잘 안되거나, 넘 오래 걸릴듯,,ㅜㅜㅜ
+
 ### 주요 기능
 1. 유튜브 구독 복제(원 계정 -> 새 계정)
 2. 유튜브 재생 목록(youtube music) 복제(원 계정 -> 새 계정)
@@ -8,10 +11,7 @@
 ## TODO
 1. 파라미터를 통한 기능수행.(ex. 재생목록만 복제,,,)
 2. Test case 추가
-
-## 참고
-- [OPEN API 사용량 제한](https://developers.google.com/youtube/v3/determine_quota_cost?hl=ko)
-- [유튜브 뮤직 재생목록 용도?](https://developers.google.com/youtube/v3/docs/playlists?hl=ko)
+3. 구독목록을 OPENAPI를 이용해서 굳이 조회해야하나?<br/> [요 페이지에서 파싱 잘하면 될것 같은데....](https://www.youtube.com/feed/channels)
 
 ## requirements
 1. google cloud registration
@@ -125,3 +125,6 @@ playlist item is newly appended [MV] Just Music _ Carnival Gang(카니발갱)
 ......
 ```
 
+## 참고
+- [OPEN API 사용량 제한](https://developers.google.com/youtube/v3/determine_quota_cost?hl=ko)
+- [유튜브 뮤직 재생목록 용도?](https://developers.google.com/youtube/v3/docs/playlists?hl=ko)
