@@ -1,9 +1,9 @@
 # Automated YouTube Subscription Copier
-유튜브 프리미엄 유목민으로서....<br/> 약 180일 마다 신규 계정을 생성해야하므로...<br/>
-구 계정의 구독 목록을 신규 계정에 일괄 등록하기 위함....ㅎ
+> 유튜브 프리미엄 유목민으로서 <br/> 약 180일 마다 신규 계정을 생성/이관해야하므로 <br/>
+구 계정의 구독 목록을 신규 계정에 일괄 등록하기 위함.
 
 # TODO
-- 도커 컨테이너로 구동하도록.
+- <s>도커 컨테이너로 구동하도록.</s>
 - 유튜브 뮤직도?
 
 ## 참고
@@ -12,7 +12,20 @@
 
 ## requirements
 1. google cloud registration
-2. golang version `1.23.0`
+2. 둘중 하나 선택
+    - golang
+    ```bash
+        $ go version
+        go version go1.23.0 darwin/arm64
+    ```
+    - docker
+    ```bash
+        $ docker version
+        Server: Docker Desktop 4.26.1 (131620)
+        Engine:
+        Version:          24.0.7
+    ```
+
 
 
 ## Steps
@@ -59,16 +72,40 @@ GOOGLE_API_KEY="PASTE_YOUR_API_KEY"
 7. 테스트 용 사용자 추가(oauth 인증시 필요)
 ![](./screenshots/04_앱게시.png)
 ![](./screenshots/04-2.png)
-8. 명령어 실행
+8. 실행
+- 도커로 실행
+```bash
+# 도커 빌드
+$ docker buildx build --platform linux/amd64 -t automate_youtube_subscription -f internal/deployments/Dockerfile .
+# 컨테이너 실행
+$ docker run --rm -p 8080:8080 --name automate_youtube_subscription automate_youtube_subscription
+```
+- 직접 실행
 ```bash
 $ go run cmd/automate_youtube_subscription/main.go
+```
+### output
+```bash
 GOOGLE_CLIENT_ID: XXXX....
 GOOGLE_CLIENT_SECRET: XXXX....
 REDIRECT_URL: http://localhost:8080
 GOOGLE_API_KEY: XXXX....
 TARGET_CHANNEL_ID: XXXX....
 
-==	채널아이디의 YouTube 구독 목록	==
+==	채널아이디(XXX)의 YouTube 구독 목록	==
 - 채널 제목: Noel Deyzel (ID: UCMp-0bU-PA7BNNR-zIvEydA)
+.....
+
+==	내 채널의 YouTube 구독 목록	==
+- 채널 제목: acooknamedMatt (ID: UCYjJeNVpgjAz-Sv4dhs13VQ)
+.....
+
+[willbe] retrieved subcribed channel size(85)
+[current] subcribed channel size(84)
+-> removed duplicated channel. left channel count:
+구독 성공: Noel Deyzel
+[request] UCMp-0bU-PA7BNNR-zIvEydA registered
+%
 ......
 ```
+
