@@ -12,6 +12,7 @@
 1. 파라미터를 통한 기능수행.(ex. 재생목록만 복제,,,)
 2. Test case 추가
 3. 구독목록을 OPENAPI를 이용해서 굳이 조회해야하나?<br/> [요 페이지에서 파싱 잘하면 될것 같은데....](https://www.youtube.com/feed/channels)
+4. 채널아이디 구하는법
 
 ## requirements
 1. google cloud registration

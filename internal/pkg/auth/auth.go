@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"automate_youtube_subscription/internal/pkg/config"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -9,33 +10,14 @@ import (
 	"os"
 	"time"
 
-	"github.com/joho/godotenv"
 	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/google"
-	youtube "google.golang.org/api/youtube/v3"
 )
 
 const tokenFile = "token.json"
 
 var (
-	conf   *oauth2.Config
 	codeCh = make(chan string)
 )
-
-func init() {
-	err := godotenv.Load("./.env")
-	if err != nil {
-		log.Fatalf("Error loading .env file: %v", err)
-	}
-	fmt.Printf("GOOGLE_CLIENT_ID: %v....\nGOOGLE_CLIENT_SECRET: %v....\nREDIRECT_URL: %v\n", os.Getenv("GOOGLE_CLIENT_ID")[:10], os.Getenv("GOOGLE_CLIENT_SECRET")[:10], os.Getenv("REDIRECT_URL"))
-	conf = &oauth2.Config{
-		ClientID:     os.Getenv("GOOGLE_CLIENT_ID"),
-		ClientSecret: os.Getenv("GOOGLE_CLIENT_SECRET"),
-		RedirectURL:  os.Getenv("REDIRECT_URL"),
-		Scopes:       []string{youtube.YoutubeScope},
-		Endpoint:     google.Endpoint,
-	}
-}
 
 func loadToken() (*oauth2.Token, error) {
 	data, err := os.ReadFile(tokenFile)
@@ -56,7 +38,8 @@ func GetValidToken(ctx context.Context) (*oauth2.Token, error) {
 	token, err := loadToken()
 	if err != nil || !token.Valid() {
 		fmt.Println("토큰 없음 또는 만료됨. 인증 진행.")
-		authURL := conf.AuthCodeURL("state-token", oauth2.AccessTypeOffline, oauth2.ApprovalForce)
+		oauth_config := config.GetInstance().GetOauthConfig()
+		authURL := oauth_config.AuthCodeURL("state-token", oauth2.AccessTypeOffline, oauth2.ApprovalForce)
 		fmt.Println("브라우저에서 URL 열기:", authURL)
 
 		http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -73,7 +56,7 @@ func GetValidToken(ctx context.Context) (*oauth2.Token, error) {
 		}()
 
 		code := <-codeCh
-		token, err = conf.Exchange(ctx, code)
+		token, err = oauth_config.Exchange(ctx, code)
 		if err != nil {
 			return nil, fmt.Errorf("토큰 교환 실패: %w", err)
 		}
@@ -83,7 +66,8 @@ func GetValidToken(ctx context.Context) (*oauth2.Token, error) {
 }
 
 func GetClient(ctx context.Context, token *oauth2.Token) *http.Client {
-	return conf.Client(ctx, token)
+	oauth_config := config.GetInstance().GetOauthConfig()
+	return oauth_config.Client(ctx, token)
 }
 
 func saveToken(token *oauth2.Token) {

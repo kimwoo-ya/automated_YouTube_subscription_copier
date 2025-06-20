@@ -1,26 +1,78 @@
 package youtube
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
+	"sync"
 
+	"automate_youtube_subscription/internal/pkg/auth"
+	"automate_youtube_subscription/internal/pkg/config"
 	datatype "automate_youtube_subscription/internal/pkg/utils/data_type"
 
+	"golang.org/x/oauth2"
+	"google.golang.org/api/option"
 	"google.golang.org/api/youtube/v3"
 )
 
-var PAGE_SIZE int64
+var (
+	apiKeyService *youtube.Service
+	oauthService  *youtube.Service
+
+	apiKeyServiceOnce sync.Once
+	oauthServiceOnce  sync.Once
+
+	PAGE_SIZE int64
+)
 
 func init() {
 	PAGE_SIZE = 30
 }
 
-func GetPlayList(youtubeService *youtube.Service, target_channel_id string) (map[string]string, map[string][]string, error) {
+func InitializeApiKeyService(ctx context.Context) error {
+	var err error
+	apiKeyServiceOnce.Do(func() {
+		conf := config.GetInstance()
+		apiKeyService, err = youtube.NewService(ctx, option.WithAPIKey(conf.GetAPIKey()))
+	})
+	return err
+}
+
+func InitializeOAuthService(ctx context.Context) error {
+	var err error
+	var token *oauth2.Token
+	oauthServiceOnce.Do(func() {
+		token, err = auth.GetValidToken(ctx)
+		if err != nil {
+			return
+		}
+		client := auth.GetClient(ctx, token)
+		oauthService, err = youtube.NewService(ctx, option.WithHTTPClient(client))
+	})
+	return err
+}
+
+func GetOAuthService() *youtube.Service {
+	if oauthService == nil {
+		return nil
+	}
+	return oauthService
+}
+
+func GetAPIKeyService() *youtube.Service {
+	if apiKeyService == nil {
+		return nil
+	}
+	return apiKeyService
+}
+
+func GetPlayList(target_channel_id string) (map[string]string, map[string][]string, error) {
+
 	playListInfo := make(map[string]string)
 	playList := make(map[string][]string, 0)
 
-	call := youtubeService.Playlists.List([]string{"snippet", "contentDetails"}).ChannelId(target_channel_id)
+	call := apiKeyService.Playlists.List([]string{"snippet", "contentDetails"}).ChannelId(target_channel_id)
 	resp, err := call.Do()
 	if err != nil {
 		fmt.Errorf("%+v", err)
@@ -34,7 +86,7 @@ func GetPlayList(youtubeService *youtube.Service, target_channel_id string) (map
 	for playListTitle, playListId := range playListInfo {
 		fmt.Printf("- 재생 목록: %s (ID:%v)\n", playListTitle, playListId)
 
-		innerCall := youtubeService.PlaylistItems.List([]string{"snippet", "contentDetails"}).PlaylistId(playListId).MaxResults(PAGE_SIZE)
+		innerCall := apiKeyService.PlaylistItems.List([]string{"snippet", "contentDetails"}).PlaylistId(playListId).MaxResults(PAGE_SIZE)
 		response, err := innerCall.Do()
 		if err != nil {
 			fmt.Errorf("%+v", err)
@@ -47,7 +99,7 @@ func GetPlayList(youtubeService *youtube.Service, target_channel_id string) (map
 		}
 
 		for response.NextPageToken != "" {
-			nextCall := youtubeService.PlaylistItems.List([]string{"snippet", "contentDetails"}).PlaylistId(playListId).MaxResults(PAGE_SIZE).PageToken(response.NextPageToken)
+			nextCall := apiKeyService.PlaylistItems.List([]string{"snippet", "contentDetails"}).PlaylistId(playListId).MaxResults(PAGE_SIZE).PageToken(response.NextPageToken)
 			nextResponse, nextErr := nextCall.Do()
 			if nextErr != nil {
 				log.Fatalf("다음 페이지 구독 목록 가져오기 오류: %v", nextErr)
@@ -66,9 +118,9 @@ func GetPlayList(youtubeService *youtube.Service, target_channel_id string) (map
 	return playListInfo, playList, nil
 }
 
-func RegisterVideoToMyPlayList(youtubeService *youtube.Service, playListId string, playListTitle string, videoIdList []string) {
+func RegisterVideoToMyPlayList(playListId string, playListTitle string, videoIdList []string) {
 	targetPlaylistTitle := fmt.Sprintf("복제된_%v", playListTitle)
-	existingPlaylist, err := findPlaylistByTitle(youtubeService, targetPlaylistTitle)
+	existingPlaylist, err := findPlaylistByTitle(targetPlaylistTitle)
 	if err != nil {
 		log.Fatalf("재생목록을 찾는 중 오류 발생: %v", err)
 		return
@@ -83,7 +135,7 @@ func RegisterVideoToMyPlayList(youtubeService *youtube.Service, playListId strin
 			},
 			Status: &youtube.PlaylistStatus{PrivacyStatus: "private"},
 		}
-		call := youtubeService.Playlists.Insert([]string{"snippet", "status"}, myPlaylist)
+		call := oauthService.Playlists.Insert([]string{"snippet", "status"}, myPlaylist)
 		createdPlaylist, err = call.Do()
 		if err != nil {
 			log.Fatalf("%v", err)
@@ -95,11 +147,10 @@ func RegisterVideoToMyPlayList(youtubeService *youtube.Service, playListId strin
 		fmt.Printf("playlist is already exist. %v\n", createdPlaylist.Snippet.Title)
 		pageToken := ""
 		for {
-			call := youtubeService.PlaylistItems.List([]string{"snippet"}).PlaylistId(createdPlaylist.Id).MaxResults(PAGE_SIZE).PageToken(pageToken)
+			call := oauthService.PlaylistItems.List([]string{"snippet"}).PlaylistId(createdPlaylist.Id).MaxResults(PAGE_SIZE).PageToken(pageToken)
 			response, err := call.Do()
 			if err != nil {
 				log.Fatalf("기 존재 재생목록 아이템을 가져오는 중 오류 발생: %v", err)
-				return
 			}
 			for _, item := range response.Items {
 				if item.Snippet.ResourceId.Kind == "youtube#video" {
@@ -127,18 +178,18 @@ func RegisterVideoToMyPlayList(youtubeService *youtube.Service, playListId strin
 				},
 			},
 		}
-		res, err := youtubeService.PlaylistItems.Insert([]string{"snippet"}, playlistItem).Do()
+		res, err := oauthService.PlaylistItems.Insert([]string{"snippet"}, playlistItem).Do()
 		if err != nil {
-			log.Fatal("%v", err)
+			fmt.Printf("[ERROR] %v", err)
 			continue
 		}
-		fmt.Printf("playlist item is newly appended %v\n", res.Snippet.Title)
+		fmt.Printf("playlist item is newly appended (\"%v\")\n", res.Snippet.Title)
 
 	}
 }
 
-func findPlaylistByTitle(youtubeService *youtube.Service, playListTitle string) (*youtube.Playlist, error) {
-	call := youtubeService.Playlists.List([]string{"snippet"}).Mine(true).MaxResults(50)
+func findPlaylistByTitle(playListTitle string) (*youtube.Playlist, error) {
+	call := oauthService.Playlists.List([]string{"snippet"}).Mine(true).MaxResults(50)
 	response, err := call.Do()
 	if err != nil {
 		return nil, fmt.Errorf("재생목록을 검색할 수 없습니다: %v", err)
@@ -152,9 +203,9 @@ func findPlaylistByTitle(youtubeService *youtube.Service, playListTitle string) 
 	return nil, nil
 }
 
-func GetSubscriptionSet(youtubeService *youtube.Service, target_channel_id string) (*datatype.Set[string], error) {
+func GetSubscriptionSet(target_channel_id string) (*datatype.Set[string], error) {
 	subscription_set := datatype.NewSet[string]()
-	call := youtubeService.Subscriptions.List([]string{"snippet", "contentDetails"}).ChannelId(target_channel_id).MaxResults(PAGE_SIZE)
+	call := apiKeyService.Subscriptions.List([]string{"snippet", "contentDetails"}).ChannelId(target_channel_id).MaxResults(PAGE_SIZE)
 	response, err := call.Do()
 	if err != nil {
 		return subscription_set, fmt.Errorf("%v", err)
@@ -166,7 +217,7 @@ func GetSubscriptionSet(youtubeService *youtube.Service, target_channel_id strin
 	}
 
 	for response.NextPageToken != "" {
-		nextCall := youtubeService.Subscriptions.List([]string{"snippet", "contentDetails"}).ChannelId(target_channel_id).MaxResults(PAGE_SIZE).PageToken(response.NextPageToken)
+		nextCall := apiKeyService.Subscriptions.List([]string{"snippet", "contentDetails"}).ChannelId(target_channel_id).MaxResults(PAGE_SIZE).PageToken(response.NextPageToken)
 		nextResponse, nextErr := nextCall.Do()
 		if nextErr != nil {
 			log.Fatalf("다음 페이지 구독 목록 가져오기 오류: %v", nextErr)
@@ -181,9 +232,9 @@ func GetSubscriptionSet(youtubeService *youtube.Service, target_channel_id strin
 	return subscription_set, nil
 }
 
-func GetCurrentSubscriptionSet(youtubeService *youtube.Service) (*datatype.Set[string], error) {
+func GetCurrentSubscriptionSet() (*datatype.Set[string], error) {
 	subscription_set := datatype.NewSet[string]()
-	call := youtubeService.Subscriptions.List([]string{"snippet", "contentDetails"}).Mine(true).MaxResults(PAGE_SIZE)
+	call := oauthService.Subscriptions.List([]string{"snippet", "contentDetails"}).Mine(true).MaxResults(PAGE_SIZE)
 	response, err := call.Do()
 	if err != nil {
 		return subscription_set, fmt.Errorf("%v", err)
@@ -195,7 +246,7 @@ func GetCurrentSubscriptionSet(youtubeService *youtube.Service) (*datatype.Set[s
 	}
 
 	for response.NextPageToken != "" {
-		nextCall := youtubeService.Subscriptions.List([]string{"snippet", "contentDetails"}).Mine(true).MaxResults(PAGE_SIZE).PageToken(response.NextPageToken)
+		nextCall := oauthService.Subscriptions.List([]string{"snippet", "contentDetails"}).Mine(true).MaxResults(PAGE_SIZE).PageToken(response.NextPageToken)
 		nextResponse, nextErr := nextCall.Do()
 		if nextErr != nil {
 			log.Fatalf("다음 페이지 구독 목록 가져오기 오류: %v", nextErr)
@@ -210,7 +261,7 @@ func GetCurrentSubscriptionSet(youtubeService *youtube.Service) (*datatype.Set[s
 	return subscription_set, nil
 }
 
-func SubscribeToChannel(service *youtube.Service, channelId string) bool {
+func SubscribeToChannel(channelId string) bool {
 	sub := &youtube.Subscription{
 		Snippet: &youtube.SubscriptionSnippet{
 			ResourceId: &youtube.ResourceId{
@@ -220,13 +271,13 @@ func SubscribeToChannel(service *youtube.Service, channelId string) bool {
 		},
 	}
 
-	call := service.Subscriptions.Insert([]string{"snippet"}, sub)
+	call := oauthService.Subscriptions.Insert([]string{"snippet"}, sub)
 	response, err := call.Do()
 	if err != nil {
 		log.Fatalf("구독 요청 실패: %v", err)
 		return false
 	}
 
-	fmt.Printf("구독 성공: %s\n", response.Snippet.Title)
+	fmt.Printf("구독 성공: (\"%s\")\n", response.Snippet.Title)
 	return true
 }
