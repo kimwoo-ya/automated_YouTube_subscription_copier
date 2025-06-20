@@ -76,12 +76,13 @@ GOOGLE_API_KEY="PASTE_YOUR_API_KEY"
 ![](./screenshots/03-3.png)
 ![](./screenshots/03-4.png)
 ![](./screenshots/03-5.png)
-![](./screenshots/03-6.png)
-![](./screenshots/03-7.png)
 
 9. Add a user for testing (required for oauth authentication)
-![](./screenshots/04_앱게시.png)
+![](./screenshots/03-6.png)
+![](./screenshots/03-7.png)
 ![](./screenshots/04-2.png)
+Make sure your API KEY signal is green.
+![](./screenshots/04_앱게시.png)
 
 10. Everything is ready. Now, shall we give it a try?
 - Running with Docker
