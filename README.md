@@ -1,22 +1,26 @@
 # Automated YouTube Subscription Copier
-> 유튜브 프리미엄 유목민으로서 <br/> 약 180일 마다 신규 계정을 생성/이관해야하므로 <br/>
-구 계정의 구독 목록을 신규 계정에 일괄 등록하기 위함.<br/>
-현재 오픈소스로 유사한 기능을 하는건 있으나, 유지보수가 제대로 안되거나 `selenium`, `Puppeteer` 이용하여 수행<br/>
--> 잘 안되거나, 넘 오래 걸릴듯,,ㅜㅜㅜ
+> As a YouTube Premium nomad, <br/> I need to create/transfer a new account every 180 days or so, <br/>
+To register the subscription list of the old account to the new account in bulk. <br/>
+There are similar functions in open source, but they are not properly maintained or are performed using `selenium`, `Puppeteer`<br/>
+→ They don't work well or takes time too long. 😥
 
-### 주요 기능
-1. 유튜브 구독 복제(원 계정 -> 새 계정)
-2. 유튜브 재생 목록(youtube music) 복제(원 계정 -> 새 계정)
+#### `The current functionality appears to be working normally, but once we determine that it is fully functional, we will release it as a major version.`
 
 ## TODO
-1. 파라미터를 통한 기능수행.(ex. 재생목록만 복제,,,)
-2. Test case 추가
-3. 구독목록을 OPENAPI를 이용해서 굳이 조회해야하나?<br/> [요 페이지에서 파싱 잘하면 될것 같은데....](https://www.youtube.com/feed/channels)
-4. 채널아이디 구하는법
+1. Execute functions through parameters. (ex. Copy only playlists, not subscirption copy,,,)
+2. Add test cases
+3. Do I really need to query the subscription list using OPENAPI?<br/> [I think it will work if I parse it well on this page....](https://www.youtube.com/feed/channels)
+
+
+
+### Key Features
+1. Copy YouTube Subscriptions (Original Account → New Account)
+2. Copy YouTube Playlists (ex. YouTube Music) (Original Account → New Account)
+
 
 ## requirements
 1. google cloud registration
-2. 둘중 하나 선택
+2. Choose one of the two
     - golang
     ```bash
         $ go version
@@ -29,37 +33,38 @@
         Engine:
         Version:          24.0.7
     ```
-
+3. Obtain original channel ID (old account)
 
 
 ## Steps
-### 복제할 유튜브 계정의 채널 아이디 정보를 `.env`파일에 기입해주세요.
+Please enter the channel ID information of the YouTube account you want to clone into the `.env` file.<br/>
+0. Log in with your original channel ID (old account)
+- [this link ](https://www.youtube.com/account_advanced) provides your channel id informations
+![](./screenshots/채널%20아이디%20조회.png)
 ```bash
 touch .env
-```
-```.env
+# append below
 TARGET_CHANNEL_ID="PASTE_TARGET_CHANNEL_ID"
 ```
-1~7 단계 참고 [공식_문서](https://developers.google.com/youtube/v3/quickstart/go?hl=ko#step_1_turn_on_the)
-1. 채널의 구독 정보 비공개를 해제해주세요.<br/>
+1. Set publically the subscription information of the original channel (old account).<br/>
 ![ ](./screenshots/00_사전조치사항.png)
-2. 구글 클라우드 콘솔로 이동해주세요. [google-cloud-console](https://console.cloud.google.com/welcome?hl=ko&inv=1&invt=Ab0cDg)
-3. 신규 프로젝트 생성 ![](./screenshots/01_리소스%20생성.png)
-4. 신규로 리소스를 생성해주세요. ![](./screenshots/01-1.png)
-5. Oauth2 client를 생성해주세요.(구독 요청시 이용)
+2. Please go to the Google Cloud Console. <br/>[google-cloud-console](https://console.cloud.google.com/welcome?hl=ko&inv=1&invt=Ab0cDg)
+3. Create a new project ![](./screenshots/01_리소스%20생성.png)
+4. Please create a new resource. ![](./screenshots/01-1.png)
+5. Please create an Oauth2 client (to be used when requesting a subscription)
 ![](./screenshots/02_0oauth%20클라이언트%20만들기.png)
 ![](./screenshots/02-1.png)
 ![](./screenshots/02-2.png)
 ![](./screenshots/02-3.png)
 ![](./screenshots/02-4.png)
 ![](./screenshots/02-5.png)
-중요 개인 정보를 `.env`파일에 기입해주세요.
+6. Please enter obtained information in the `.env` file.
 ```.env
 GOOGLE_CLIENT_ID="PASTE_YOUR_CLIENT_ID"
 GOOGLE_CLIENT_SECRET="PASTE_YOUR_CLIENT_SECRET"
 REDIRECT_URL="http://localhost:8080"
 ```
-6. API Key를 생성해주세요.(구독 목록 조회시 이용)
+7. Please create an API Key (used when viewing subscription list)
 ![](./screenshots/03-0APIKEY만들기.png)
 ![](./screenshots/03-1.png)
 ![](./screenshots/03-2.png)
@@ -67,24 +72,29 @@ save private informations to file `.env`
 ```.env
 GOOGLE_API_KEY="PASTE_YOUR_API_KEY"
 ```
-6-1. youtube data api v3 사용 등록
+
+8. Register to use youtube data api v3
 ![](./screenshots/03-3.png)
 ![](./screenshots/03-4.png)
 ![](./screenshots/03-5.png)
 ![](./screenshots/03-6.png)
 ![](./screenshots/03-7.png)
-7. 테스트 용 사용자 추가(oauth 인증시 필요)
+
+9. Add a user for testing (required for oauth authentication)
 ![](./screenshots/04_앱게시.png)
 ![](./screenshots/04-2.png)
-8. 실행
-- 도커로 실행
+
+10. Everything is ready. Now, shall we give it a try?
+- Running with Docker
 ```bash
-# 도커 빌드
+# build docker images from dockerfile
+# Here is an example on arm mac.
 $ docker buildx build --platform linux/amd64 -t automate_youtube_subscription -f internal/deployments/Dockerfile .
-# 컨테이너 실행
+
+# execute container.
 $ docker run --rm -p 8080:8080 --name automate_youtube_subscription automate_youtube_subscription
 ```
-- 직접 실행
+- Running with Go
 ```bash
 $ go run cmd/automate_youtube_subscription/main.go
 ```
@@ -119,13 +129,14 @@ playlist item is newly appended [MV] Just Music _ Carnival Gang(카니발갱)
 
 [willbe] retrieved subcribed channel size(85)
 [current] subcribed channel size(84)
--> removed duplicated channel. left channel count:
+→ removed duplicated channel. left channel count:
 구독 성공: Noel Deyzel
 [request] UCMp-0bU-PA7BNNR-zIvEydA registered
 %
 ......
 ```
 
-## 참고
-- [OPEN API 사용량 제한](https://developers.google.com/youtube/v3/determine_quota_cost?hl=ko)
-- [유튜브 뮤직 재생목록 용도?](https://developers.google.com/youtube/v3/docs/playlists?hl=ko)
+## reference
+- [OPEN API usage limits](https://developers.google.com/youtube/v3/determine_quota_cost)
+- [Use case for YouTube Music Playlists](https://developers.google.com/youtube/v3/docs/playlists)
+- [Official Docs](https://developers.google.com/youtube/v3/quickstart/go#step_1_turn_on_the)

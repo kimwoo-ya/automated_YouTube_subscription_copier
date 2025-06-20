@@ -110,9 +110,9 @@ func GetPlayList(target_channel_id string) (map[string]string, map[string][]stri
 				playList[playListId] = append(playList[playListId], playlistItem.Snippet.ResourceId.VideoId)
 			}
 			response = nextResponse
-
+			break // for test
 		}
-
+		break // for test
 	}
 
 	return playListInfo, playList, nil
@@ -184,7 +184,7 @@ func RegisterVideoToMyPlayList(playListId string, playListTitle string, videoIdL
 			continue
 		}
 		fmt.Printf("playlist item is newly appended (\"%v\")\n", res.Snippet.Title)
-
+		break // for test
 	}
 }
 
