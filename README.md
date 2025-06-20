@@ -7,9 +7,8 @@ There are similar functions in open source, but they are not properly maintained
 #### `The current functionality appears to be working normally, but once we determine that it is fully functional, we will release it as a major version.`
 
 ## TODO
-1. Execute functions through parameters. (ex. Copy only playlists, not subscirption copy,,,)
-2. Add test cases
-3. Do I really need to query the subscription list using OPENAPI?<br/> [I think it will work if I parse it well on this page....](https://www.youtube.com/feed/channels)
+1. Add test cases
+2. Do I really need to query the subscription list using OPENAPI?<br/> [I think it will work if I parse it well on this page....](https://www.youtube.com/feed/channels)
 
 
 
