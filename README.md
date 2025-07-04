@@ -9,6 +9,7 @@ There are similar functions in open source, but they are not properly maintained
 ## TODO
 1. Add test cases
 2. Do I really need to query the subscription list using OPENAPI?<br/> [I think it will work if I parse it well on this page....](https://www.youtube.com/feed/channels)
+   1. [take_out_account_info](https://takeout.google.com/settings/takeout)
 
 
 
